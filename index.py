@@ -3,6 +3,8 @@ on_sae = False
 if 'SERVER_SOFTWARE' in os.environ or 'APP_NAME' in os.environ or 'APP_VERSION' in os.environ:
     on_sae = True
 
+os.environ['disable_fetchurl'] = True
+
 if on_sae:
     import tornado.wsgi
     import sae
