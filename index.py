@@ -1,15 +1,15 @@
 import os
 on_sae = False
-if 'SERVER_SOFTWARE' in os.environ:
+if 'SERVER_SOFTWARE' in os.environ or 'APP_NAME' in os.environ or 'APP_VERSION' in os.environ:
     on_sae = True
 
 if on_sae:
+    import tornado.wsgi
+    import sae
+else:
     import tornado.web
     import tornado.ioloop
     from tornado.httpserver import HTTPServer
-else:
-    import tornado.wsgi
-    import sae
 
 import qiniu.conf
 import qiniu.rs
@@ -30,7 +30,7 @@ class ResultHdl(tornado.web.RequestHandler):
         bucket = self.get_argument('bucket', None)
         if data and a_key and s_key and bucket:
             extra = qiniu.io.PutExtra()
-            extra.mime_type = "text/plain"
+            extra.mime_type = "text/html"
             qiniu.conf.ACCESS_KEY = str(a_key)
             qiniu.conf.SECRET_KEY = str(s_key)
             bucket = str(bucket)
