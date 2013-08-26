@@ -14,11 +14,6 @@ else:
 import qiniu.conf
 import qiniu.rs
 import qiniu.io
-#import qiniu.rpc as rpc
-#import qiniu.conf as conf
-
-#for test
-#import qiniu.httplib_chunk as httplib
 
 
 class UploadHdl(tornado.web.RequestHandler):
@@ -42,54 +37,11 @@ class ResultHdl(tornado.web.RequestHandler):
             policy = qiniu.rs.PutPolicy(bucket)
             token = policy.token()
 
-            #for test
-            #fields = dict()
-            #if extra.params:
-            #    for k in extra.params:
-            #        fields[k] = str(extra.params[k])
-            #
-            #if extra.check_crc:
-            #    fields["crc32"] = str(extra.crc32)
-            #
-            #fields["token"] = token
-            #
-            #files = [
-            #    {'filename': 'sae_test.txt', 'data': data, 'mime_type': extra.mime_type},
-            #]
-            #
-            #end
-            #cli = rpc.Client(conf.UP_HOST)
-            #content_type, mr = cli.encode_multipart_formdata(fields, files)
-            #content_length = mr.length()
-            #conn = httplib.HTTPConnection(conf.UP_HOST)
-
-            #conn.request('POST', '/', mr, header)
-            #resp = conn.getresponse()
-            #ret = resp.read()
-            #err = True
-            #self.write(str(resp.status))
-
-            #cli.set_header("User-Agent", conf.USER_AGENT)
-            #if content_type is not None:
-            #    cli.set_header("Content-Type", content_type)
-            #if content_length is not None:
-            #    cli.set_header("Content-Length", content_length)
-
-            #header = cli._header
-            #self.write(str(header))
-            #conn.request('POST', '/', mr, header)
-            #resp = conn.getresponse()
-
-            #self.write(str(resp.read()))
-            #self.write(str(resp.status))
-            #data = 'test'
-
             ret, err = qiniu.io.put(token, None, data, extra)
-            self.write(str(ret))
-            #if not err:
-            #    data = 'http://%s.qiniudn.com/%s' % (bucket, ret['key'])
-            #else:
-            #    data = 'ret:%s;err:%s' % (ret, err)
+            if (type(ret) is dict) and (not err):
+                data = 'http://%s.qiniudn.com/%s' % (bucket, ret['key'])
+            else:
+                data = 'ret:%s;err:%s' % (ret, err)
         self.render('result.html', data=data)
         return
 
@@ -107,10 +59,13 @@ urls = [
 ]
 
 
-#app = tornado.wsgi.WSGIApplication(urls, **settings)
-app = tornado.web.Application(urls, **settings)
-server = HTTPServer(app, xheaders=True)
-server.bind(50001)
-server.start()
-tornado.ioloop.IOLoop.instance().start()
-#application = sae.create_wsgi_app(app)
+if on_sae:
+    app = tornado.wsgi.WSGIApplication(urls, **settings)
+    application = sae.create_wsgi_app(app)
+else:
+    app = tornado.web.Application(urls, **settings)
+    server = HTTPServer(app, xheaders=True)
+    server.bind(50001)
+    server.start()
+    tornado.ioloop.IOLoop.instance().start()
+
