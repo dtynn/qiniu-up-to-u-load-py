@@ -26,7 +26,7 @@ class UploadHdl(tornado.web.RequestHandler):
 
 class ResultHdl(tornado.web.RequestHandler):
     def post(self):
-        data = self.get_argument('data', 'no data')
+        data = self.get_argument('data', None)
         a_key = self.get_argument('access_key', None)
         s_key = self.get_argument('secret_key', None)
         bucket = self.get_argument('bucket', None)
@@ -44,6 +44,8 @@ class ResultHdl(tornado.web.RequestHandler):
                 data = 'http://%s.qiniudn.com/%s' % (bucket, ret['key'])
             else:
                 data = 'ret:%s;err:%s' % (ret, err)
+
+        data = data or 'no data'
         self.render('result.html', data=data)
         return
 
